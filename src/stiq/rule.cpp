@@ -19,6 +19,15 @@ string Rule::tree() {
     return tree_impl("RULE<" + name() + ">");
 }
 
+string Rule::to_s() {
+    stringstream ss;
+    if (name() != "ROOT") {
+        ss << "(";
+    }
+    ss << to_s_impl();
+    return ss.str();
+}
+
 string Rule::name() {
     string s;
     for (int i = 0; i < 8; ++i) {

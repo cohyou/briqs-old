@@ -10,6 +10,7 @@ class Rule : public Cell {
 public:
     Rule(string n, Baseplate *plate);
     string tree();
+    string to_s();
     string name();
 };
 

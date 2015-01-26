@@ -181,8 +181,11 @@ string Cell::to_s_impl() {
             ss << l_b->to_s();
         }
     } else {
-        ss << "N";
+        if (gptr()) {
+            ss << "N";
+        }
     }
+
     if (gptr()) {
         Briq *g_b = g();
         if (g_b->type() == LIST) {
@@ -194,7 +197,9 @@ string Cell::to_s_impl() {
             ss << ")";
         }
     } else {
-        if (type() == LIST) ss << ")";
+        if (type() == LIST) {
+            ss << ")";
+        }
     }
 
     return ss.str();
