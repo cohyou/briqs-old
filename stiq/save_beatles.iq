@@ -1,0 +1,34 @@
+(: bc "beatles")
+
+;アルバム名をリストでくるんで返す
+(: album-cell (^ (album-name)
+    (: album (save album-name bc))
+    (save (~ album) bc)))
+
+;現在保存されている最後のCellを取得する
+(: last (^ (cell)
+    (? (G cell)
+       (last (G cell))
+       cell)))
+
+;指定した名前のアルバム項目を追加する
+(: add-album (^ (album)
+    (: c (album-cell album))
+    (save (setg (last (L (load 0 bc))) c) bc)))
+
+(bucket bc)
+
+(: cell1 (album-cell "Please Please Me"))
+(: ent (load 0 bc)) ;0行目を呼出
+(save (setl ent cell1) bc) ;0行目のLにcell1をセット
+
+(add-album "With The Beatles")
+;(G (G (L (load 0 bc))))
+(add-album "Beatles For Sale")
+;(add-album "Help!")
+;(add-album "Rubber Soul")
+;(add-album "Revolver")
+;(add-album "White Album")
+;(add-album "Yellow Submarine")
+;(add-album "Abbey Road")
+;(add-album "Let It Be")

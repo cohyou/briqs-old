@@ -69,7 +69,7 @@ Briq *Interpreter::eval(Briq *n, const unsigned int depth) {
         } else {
             result = 0; //new Sval((SvalType)n->type);
         }
-        plate->vnsh_briq(n);
+        // plate->vnsh_briq(n);
     } else if (n->type() == TXT_) {
         result = n;
     } else if (n->type() == SMBL) {
