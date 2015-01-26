@@ -33,7 +33,6 @@ string Interpreter::eval() {
     // cout << "_GC_ AFTR EVAL ROOT briq_count: " << dec << briq_count() << endl;
 
     string result = r->to_s();
-
     plate->mark_sweep_briqs(r);
     // cout << "---- FNSH EVAL ---- briq_count: " << dec << briq_count() << endl;
 
@@ -230,7 +229,7 @@ Briq *Interpreter::index(Briq *args, const unsigned int depth) {
 Briq *Interpreter::clear_bucket(Briq *args, const unsigned int depth) {
     Briq *bucket_text = eval(args->l(), depth + 1);
     plate->clear_bucket(bucket_text->name());
-    return plate->load_briq(0, bucket_text->name(), 0);
+    return bucket_text; // plate->load_briq(0, bucket_text->name(), 0);
 }
 
 Briq *Interpreter::define(Briq *args, const unsigned int depth) {
