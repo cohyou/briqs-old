@@ -242,7 +242,7 @@ Briq *Interpreter::define(Briq *args, const unsigned int depth) {
 Briq *Interpreter::condition(Briq *args, const unsigned int depth) {
     Briq *result;
     Briq *p = eval(args->l(), depth + 1);
-    if (p->type() != NONE && p->type() != FVAL) {
+    if (p->type() != NONE && p->type() != FVAL && !(p->type() == CELL && !p->l())) {
         result = eval(args->g()->l(), depth + 1);
     } else {
         if (args->g()->g()) {
