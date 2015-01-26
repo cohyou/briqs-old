@@ -1,2 +1,2 @@
-# briqs
+# Briqs
 Lisp-NoSQL DBMS
