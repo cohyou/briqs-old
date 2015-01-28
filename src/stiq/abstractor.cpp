@@ -117,6 +117,8 @@ void Abstractor::add() {
     } else if (n == "T") {
         current_node->add_child(input->plate->make_tval());
         // input->plate->vnsh_briq(lookahead);
+    } else if (n == "N") {
+        current_node->add_child(input->plate->make_none());
     } else {
         if (n == "Q" || n == "?" || n == "^" || n == ":") {
             SpfmType t;
