@@ -48,114 +48,44 @@ Briq *Interpreter::eval(Briq *n, const unsigned int depth) {
 
     Briq *result = 0;
 
-    if (n->type() == RULE && n->name() == "ROOT") {
-        Briq *b = n->l();
-        while (b) {
-            List *l = plate->make_list();
-            l->add_child(eval(b->l(), depth + 1));
-            root->add_child(l);
-            b = b->g();
-        }
-        result = root;
-    } else if (n->kind() == SVAL) {
-        if (n->type() == NONE) {
-            result = N;
-        } else if (n->type() == TVAL) {
-            result = T;
-        } else if (n->type() == FVAL) {
-            result = F;
-        } else if (n->type() == UI64) {
-            result = plate->make_ui64(n->lval());
-        } else {
-            result = 0; //new Sval((SvalType)n->type);
-        }
-        // plate->vnsh_briq(n);
-    } else if (n->type() == TXT_) {
-        result = n;
-    } else if (n->type() == SMBL) {
-        string symbol_name = n->name();
-        result = scope_stack.top()->resolve(symbol_name);
-    } else if (n->type() == LIST && n->l()->type() == SPFM) {
-        if (n->l()->sbtp3() == QUOT) {
-            result = n->g()->l();
-        } else if (n->l()->sbtp3() == DEFN) {
-            result = define(n->g(), depth);
-        } else if (n->l()->sbtp3() == COND) {
-            result = condition(n->g(), depth);
-        } else if (n->l()->sbtp3() == LMBD) {
-            result = lambda(n->g(), depth);
-        } else {
+    if (n->type() == RULE && n->name() == "ROOT") { result = eval_root(n->l(), depth); }
+    else if (n->kind() == SVAL) { result = eval_sval(n, depth); }
+    else if (n->type() == TXT_) { result = eval_vctr(n, depth); }
+    else if (n->type() == SMBL) { result = resolve_symbol(n, depth); }
+    else if (n->type() == LIST && n->l()->type() == SPFM) {
+        if (n->l()->sbtp3() == QUOT) { result = quote(n->g(), depth); }
+        else if (n->l()->sbtp3() == DEFN) { result = define(n->g(), depth); }
+        else if (n->l()->sbtp3() == COND) { result = condition(n->g(), depth); }
+        else if (n->l()->sbtp3() == LMBD) { result = lambda(n->g(), depth); }
+        else {
             cout << "!!!! INVL SPFM !!!!" << endl;
             result = N;
         }
-    } else if (n->type() == RULE && n->name() == "SEQ_") {
-        result = sequence(n, depth);
-    } else if (n->type() == LIST) {
+    }
+    else if (n->type() == RULE && n->name() == "SEQ_") { result = sequence(n, depth); }
+    else if (n->type() == LIST) {
         if (n->l() && n->l()->type() == SMBL) {
             string symbol_name = n->l()->name();
-            if (symbol_name == "setl") {
-                Briq *arg1 = eval(n->g()->l(), depth + 1);
-                Briq *arg2 = eval(n->g()->g()->l(), depth + 1);
-                arg1->set_lptr(arg2);
-                result = arg1;
-            } else if (symbol_name == "setg") {
-                Briq *arg1 = eval(n->g()->l(), depth + 1);
-                Briq *arg2 = eval(n->g()->g()->l(), depth + 1);
-                arg1->set_gptr(arg2);
-                result = arg1;
-            } else if (symbol_name == "index") {
-                result = index(n->g(), depth);
-            } else if (symbol_name == "save") {
-                Briq *save_target = eval(n->g()->l(), depth + 1);
-                Briq *bucket_text = eval(n->g()->g()->l(), depth + 1);
-
-                result = plate->save_briq(save_target, bucket_text->name());
-            } else if (symbol_name == "load") {
-                Briq *briq_id = eval(n->g()->l(), depth + 1);
-                Briq *bucket_text = eval(n->g()->g()->l(), depth + 1);
-
-                result = plate->load_briq(briq_id->lval(), bucket_text->name(), 0);
-            } else if (symbol_name == "bucket") {
-                result = clear_bucket(n->g(), depth);
-            } else if (symbol_name == "save-recursive") {
-                Briq *save_target = eval(n->g()->l(), depth + 1);
-                Briq *bucket_text = eval(n->g()->g()->l(), depth + 1);
-
-                result = plate->save_briq_recursive(save_target, bucket_text->name());
-            } else if (symbol_name == "import") {
-                Briq *bucket_text = eval(n->g()->l(), depth + 1);
-
-                Briq *ent = plate->load_briq(0, bucket_text->name(), 0);
-                Briq *statement = ent->l();
-                result = statement;
-                while (statement) {
-                    result = eval(statement->l(), depth + 1);
-                    statement = statement->g();
-                }
-            } else if (symbol_name == "to_s") {
-                Briq *target = eval(n->g()->l(), depth + 1);
-                result = plate->make_text(target->to_s());
-            } else if (symbol_name == "print") {
-                Briq *target = eval(n->g()->l(), depth + 1);
-                cout << target->name();
-                result = plate->make_rule("UNDF");
-            } else if (symbol_name == "println") {
-                Briq *target = eval(n->g()->l(), depth + 1);
-                cout << target->name() << endl;
-                result = plate->make_rule("UNDF");
-            } else if (symbol_name == "string") {
-                result = str(n->g(), depth);
-            } else if (symbol_name == "ln") {
-                result = ln(n->g(), depth);
-            } else {
-                result = apply(n, depth);
-            }
+            if (symbol_name == "setl") { result = setl(n->g(), depth); }
+            else if (symbol_name == "setg") { result = setg(n->g(), depth); }
+            else if (symbol_name == "index") { result = index(n->g(), depth); }
+            else if (symbol_name == "save") { result = save(n->g(), depth); }
+            else if (symbol_name == "load") { result = load(n->g(), depth); }
+            else if (symbol_name == "bucket") { result = clear_bucket(n->g(), depth); }
+            else if (symbol_name == "save-recursive") { result = save_recursive(n->g(), depth); }
+            else if (symbol_name == "import") { result = import(n->g(), depth); }
+            else if (symbol_name == "to_s") { result = to_s(n->g(), depth); }
+            else if (symbol_name == "print") { result = print(n->g(), depth); }
+            else if (symbol_name == "println") { result = println(n->g(), depth); }
+            else if (symbol_name == "string") { result = str(n->g(), depth); }
+            else if (symbol_name == "ln") { result = ln(n->g(), depth); }
+            else { result = apply(n, depth); }
         } else {
             result = apply(n, depth);
         }
-    } else if (n->type() == FUNC) {
-        result = n;
-    } else {
+    }
+    else if (n->type() == FUNC) { result = n; }
+    else {
         cout << "!!!! EVAL ERRR !!!!" << endl;
     }
 
@@ -172,38 +102,125 @@ Briq *Interpreter::apply(Briq *n, const unsigned int depth) {
         cout << "!!!! APLY ERRR !!!! " << n->l()->tree() << " _IS_ NULL" << endl;
     }
 
-    if (f->sbtp3() == ATOM) {
-        result = atom(n->g(), depth);
-    } else if (f->sbtp3() == EQL_) {
-        result = equal(n->g(), depth);
-    } else if (f->sbtp3() == CAR_) {
-        result = car(n->g(), depth);
-    } else if (f->sbtp3() == CDR_) {
-        result = cdr(n->g(), depth);
-    } else if (f->sbtp3() == CONS) {
-        result = cons(n->g(), depth);
-    } else if (n->kind() == CELL) {
+    if (f->sbtp3() == ATOM) { result = atom(n->g(), depth); }
+    else if (f->sbtp3() == EQL_) { result = equal(n->g(), depth); }
+    else if (f->sbtp3() == CAR_) { result = car(n->g(), depth); }
+    else if (f->sbtp3() == CDR_) { result = cdr(n->g(), depth); }
+    else if (f->sbtp3() == CONS) { result = cons(n->g(), depth); }
+    else if (n->kind() == CELL) {
         if (f->type() == RULE && f->name() == "LMBD") {
-            scope_stack.push(new Scope("FuncScope", scope_stack.top()));
-            Briq *sym = f->l()->l();
-            Briq *args = n->g();
-            while (sym) {
-                Briq *s = sym->l();
-                scope_stack.top()->define(s->name(), eval(args->l(), depth + 1));
-                sym = sym->g();
-                args = args->g();
-            }
-            result = eval(f->l()->g(), depth + 1);
-
-            Scope *top = scope_stack.top();
-            delete top;
-            scope_stack.pop();
+            result = exec_func(f->l(), n->g(), depth);
         }
     } else {
         cout << "!!!! APLY ERRR !!!!" << endl;
     }
 
     return result;
+}
+
+Briq *Interpreter::eval_root(Briq *args, const unsigned int depth) {
+    Briq *b = args;
+    while (b) {
+        List *l = plate->make_list();
+        l->add_child(eval(b->l(), depth + 1));
+        root->add_child(l);
+        b = b->g();
+    }
+    return root;
+}
+
+Briq *Interpreter::eval_sval(Briq *sval, const unsigned int depth) {
+    Briq *result = 0;
+
+    if (sval->type() == NONE) {
+        result = N;
+    } else if (sval->type() == TVAL) {
+        result = T;
+    } else if (sval->type() == FVAL) {
+        result = F;
+    } else if (sval->type() == UI64) {
+        result = plate->make_ui64(sval->lval());
+    } else {
+        result = 0; //new Sval((SvalType)n->type);
+    }
+    // plate->vnsh_briq(n);
+
+    return result;
+}
+
+Briq *Interpreter::eval_vctr(Briq *vctr, const unsigned int depth) {
+    return vctr;
+}
+
+Briq *Interpreter::resolve_symbol(Briq *smbl, const unsigned int depth) {
+    string symbol_name = smbl->name();
+    return scope_stack.top()->resolve(symbol_name);
+}
+
+Briq *Interpreter::setl(Briq *args, const unsigned int depth) {
+    Briq *arg1 = eval(args->l(), depth + 1);
+    Briq *arg2 = eval(args->g()->l(), depth + 1);
+    arg1->set_lptr(arg2);
+    return arg1;
+}
+
+Briq *Interpreter::setg(Briq *args, const unsigned int depth) {
+    Briq *arg1 = eval(args->l(), depth + 1);
+    Briq *arg2 = eval(args->g()->l(), depth + 1);
+    arg1->set_gptr(arg2);
+    return arg1;
+}
+
+Briq *Interpreter::save(Briq *args, const unsigned int depth) {
+    Briq *save_target = eval(args->l(), depth + 1);
+    Briq *bucket_text = eval(args->g()->l(), depth + 1);
+
+    return plate->save_briq(save_target, bucket_text->name());
+}
+
+Briq *Interpreter::load(Briq *args, const unsigned int depth) {
+    Briq *briq_id = eval(args->l(), depth + 1);
+    Briq *bucket_text = eval(args->g()->l(), depth + 1);
+
+    return plate->load_briq(briq_id->lval(), bucket_text->name(), 0);
+}
+
+Briq *Interpreter::save_recursive(Briq *args, const unsigned int depth) {
+    Briq *save_target = eval(args->l(), depth + 1);
+    Briq *bucket_text = eval(args->g()->l(), depth + 1);
+
+    return plate->save_briq_recursive(save_target, bucket_text->name());
+}
+
+Briq *Interpreter::import(Briq *args, const unsigned int depth) {
+    Briq *result = 0;
+    Briq *bucket_text = eval(args->l(), depth + 1);
+
+    Briq *ent = plate->load_briq(0, bucket_text->name(), 0);
+    Briq *statement = ent->l();
+    result = statement;
+    while (statement) {
+        result = eval(statement->l(), depth + 1);
+        statement = statement->g();
+    }
+    return result;
+}
+
+Briq *Interpreter::to_s(Briq *args, const unsigned int depth) {
+    Briq *target = eval(args->l(), depth + 1);
+    return plate->make_text(target->to_s());
+}
+
+Briq *Interpreter::print(Briq *args, const unsigned int depth) {
+    Briq *target = eval(args->l(), depth + 1);
+    cout << target->name();
+    return plate->make_rule("UNDF");
+}
+
+Briq *Interpreter::println(Briq *args, const unsigned int depth) {
+    Briq *target = eval(args->l(), depth + 1);
+    cout << target->name() << endl;
+    return plate->make_rule("UNDF");
 }
 
 Briq *Interpreter::str(Briq *args, const unsigned int depth) {
@@ -232,6 +249,10 @@ Briq *Interpreter::clear_bucket(Briq *args, const unsigned int depth) {
     return bucket_text; // plate->load_briq(0, bucket_text->name(), 0);
 }
 
+Briq *Interpreter::quote(Briq *args, const unsigned int depth) {
+    return args->l();
+}
+
 Briq *Interpreter::define(Briq *args, const unsigned int depth) {
     Briq *sym = args->l();
     Briq *cnt = eval(args->g()->l(), depth + 1);
@@ -240,7 +261,7 @@ Briq *Interpreter::define(Briq *args, const unsigned int depth) {
 }
 
 Briq *Interpreter::condition(Briq *args, const unsigned int depth) {
-    Briq *result;
+    Briq *result = 0;
     Briq *p = eval(args->l(), depth + 1);
     if (p->type() != NONE && p->type() != FVAL && !(p->type() == CELL && !p->l())) {
         result = eval(args->g()->l(), depth + 1);
@@ -294,7 +315,7 @@ Briq *Interpreter::sequence(Briq *seq_list, const unsigned int depth) {
 }
 
 Briq *Interpreter::atom(Briq *args, const unsigned int depth) {
-    Briq *result;
+    Briq *result = 0;
     if (eval(args->l(), depth + 1)->kind() != CELL) {
         result = T;
     } else {
@@ -304,7 +325,7 @@ Briq *Interpreter::atom(Briq *args, const unsigned int depth) {
 }
 
 Briq *Interpreter::equal(Briq *args, const unsigned int depth) {
-    Briq *result;
+    Briq *result = 0;
 
     Briq *arg1 = eval(args->l(), depth + 1);
     Briq *arg2 = eval(args->g()->l(), depth + 1);
@@ -341,7 +362,7 @@ Briq *Interpreter::equal(Briq *args, const unsigned int depth) {
 }
 
 Briq *Interpreter::car(Briq *args, const unsigned int depth) {
-    Briq *result;
+    Briq *result = 0;
 
     Briq *arg1 = eval(args->l(), depth + 1);
     if (arg1->l()) {
@@ -357,7 +378,7 @@ Briq *Interpreter::car(Briq *args, const unsigned int depth) {
 }
 
 Briq *Interpreter::cdr(Briq *args, const unsigned int depth) {
-    Briq *result;
+    Briq *result = 0;
 
     Briq *arg1 = eval(args->l(), depth + 1);
     if (arg1->l()) {
@@ -386,4 +407,26 @@ Briq *Interpreter::cons(Briq *args, const unsigned int depth) {
     }
 
     return l;
+}
+
+Briq *Interpreter::exec_func(Briq *lmbd, Briq *args, const unsigned int depth) {
+    Briq *result = 0;
+    Briq *params = lmbd->l();
+    Briq *lambda_body = lmbd->g();
+
+    scope_stack.push(new Scope("FuncScope", scope_stack.top()));
+
+    while (params) {
+        Briq *param_smbl = params->l();
+        scope_stack.top()->define(param_smbl->name(), eval(args->l(), depth + 1));
+        params = params->g();
+        args = args->g();
+    }
+    result = eval(lambda_body, depth + 1);
+
+    Scope *top = scope_stack.top();
+    delete top;
+    scope_stack.pop();
+
+    return result;
 }
