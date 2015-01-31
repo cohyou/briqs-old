@@ -173,12 +173,14 @@ string Cell::to_s_impl() {
 
     if (lptr()) {
         Briq *l_b = l();
-        l_b->set_depth(depth() + 1);
-        if (l_b->type() == LIST) {
-            ss << "(";
-            ss << l_b->to_s_impl();
-        } else {
-            ss << l_b->to_s();
+        if (l_b) {
+            l_b->set_depth(depth() + 1);
+            if (l_b->type() == LIST) {
+                ss << "(";
+                ss << l_b->to_s_impl();
+            } else {
+                ss << l_b->to_s();
+            }            
         }
     } else {
         if (gptr()) {
@@ -188,13 +190,15 @@ string Cell::to_s_impl() {
 
     if (gptr()) {
         Briq *g_b = g();
-        if (g_b->type() == LIST) {
-            ss << " ";
-            ss << g_b->to_s_impl();
-        } else {
-            ss << " . ";
-            ss << g_b->to_s();
-            ss << ")";
+        if (g_b) {
+            if (g_b->type() == LIST) {
+                ss << " ";
+                ss << g_b->to_s_impl();
+            } else {
+                ss << " . ";
+                ss << g_b->to_s();
+                ss << ")";
+            }
         }
     } else {
         if (type() == LIST) {

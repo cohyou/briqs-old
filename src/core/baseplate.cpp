@@ -85,6 +85,7 @@ void Baseplate::mark_sweep_briqs(Briq *b) {
 }
 
 bool is_not_marked(Briq *b) {
+    if (!b) return false;
     return !b->is_marked();
 }
 
