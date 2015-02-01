@@ -142,6 +142,10 @@ string Briq::to_s_impl() {
     return "";
 }
 
+string Briq::vstr() {
+    return "";
+}
+
 string Briq::name() {
     return "";
 }

@@ -56,6 +56,7 @@ public:
     virtual string to_s();
     virtual string to_s_impl();
 public:
+    virtual string vstr();
     virtual string name();
 public:
     virtual void save_other_briqs();
