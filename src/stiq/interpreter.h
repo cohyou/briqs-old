@@ -52,5 +52,12 @@ private:
     Briq *cdr(Briq *args, const unsigned int depth);
     Briq *cons(Briq *args, const unsigned int depth);
 
+    Briq *eval_list(Briq *args, const unsigned int depth);
+
+    Briq *gt(Briq *args, const unsigned int depth);
+    Briq *lt(Briq *args, const unsigned int depth);
+
     Briq *exec_func(Briq *lmbd, Briq *args, const unsigned int depth);
+private:
+    Briq *bool_to_TF(bool b);
 };

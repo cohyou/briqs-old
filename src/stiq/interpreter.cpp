@@ -79,6 +79,9 @@ Briq *Interpreter::eval(Briq *n, const unsigned int depth) {
             else if (symbol_name == "println") { result = println(n->g(), depth); }
             else if (symbol_name == "string") { result = str(n->g(), depth); }
             else if (symbol_name == "ln") { result = ln(n->g(), depth); }
+            else if (symbol_name == "list") { result = eval_list(n->g(), depth); }
+            else if (symbol_name == "<") { result = lt(eval_list(n->g(), depth), depth); }
+            else if (symbol_name == ">") { result = gt(eval_list(n->g(), depth), depth); }
             else { result = apply(n, depth); }
         } else {
             result = apply(n, depth);
@@ -409,6 +412,35 @@ Briq *Interpreter::cons(Briq *args, const unsigned int depth) {
     return l;
 }
 
+Briq *Interpreter::eval_list(Briq *args, const unsigned int depth) {
+    Briq *arg_list = args;
+    while (arg_list) {
+        arg_list->set_lptr(eval(arg_list->l(), depth + 1));
+        arg_list = arg_list->g();
+    }
+    return args;
+}
+
+Briq *Interpreter::gt(Briq *args, const unsigned int depth) {
+    Briq *result = N;
+    Briq *arg1 = args->l();
+    Briq *arg2 = args->g()->l();
+    if (arg1->type() == TXT_) {
+        result = bool_to_TF(arg1->vstr() > arg2->vstr());
+    }
+    return result;
+}
+
+Briq *Interpreter::lt(Briq *args, const unsigned int depth) {
+    Briq *result = N;
+    Briq *arg1 = args->l();
+    Briq *arg2 = args->g()->l();
+    if (arg1->type() == TXT_) {
+        result = bool_to_TF(arg1->vstr() < arg2->vstr());
+    }
+    return result;
+}
+
 Briq *Interpreter::exec_func(Briq *lmbd, Briq *args, const unsigned int depth) {
     Briq *result = 0;
     Briq *params = lmbd->l();
@@ -429,4 +461,14 @@ Briq *Interpreter::exec_func(Briq *lmbd, Briq *args, const unsigned int depth) {
     scope_stack.pop();
 
     return result;
+}
+
+Briq *Interpreter::bool_to_TF(bool b) {
+    Briq *r;
+    if (b) {
+        r = T;
+    } else {
+        r = F;
+    }
+    return r;
 }
