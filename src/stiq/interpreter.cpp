@@ -413,12 +413,16 @@ Briq *Interpreter::cons(Briq *args, const unsigned int depth) {
 }
 
 Briq *Interpreter::eval_list(Briq *args, const unsigned int depth) {
+    List *first = plate->make_list();
+    Briq *l = first;
     Briq *arg_list = args;
     while (arg_list) {
-        arg_list->set_lptr(eval(arg_list->l(), depth + 1));
+        l->set_lptr(eval(arg_list->l(), depth + 1));
+        l->set_gptr(plate->make_list());
+        l = l->g();
         arg_list = arg_list->g();
     }
-    return args;
+    return first;
 }
 
 Briq *Interpreter::gt(Briq *args, const unsigned int depth) {
