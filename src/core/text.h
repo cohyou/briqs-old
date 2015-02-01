@@ -17,6 +17,7 @@ public:
     string tree();
     string to_s();
 public:
+    string vstr();
     string name();
 public:
     void save_other_briqs();

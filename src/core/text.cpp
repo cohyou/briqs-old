@@ -23,6 +23,10 @@ string Text::to_s() {
     return "\"" + name() + "\"";
 }
 
+string Text::vstr() {
+    return vval(texts);
+}
+
 string Text::name() {
     return vval(texts);
 }
