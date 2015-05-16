@@ -21,29 +21,36 @@
 #include <stack>
 #include <type_traits>
 
+
 namespace briqs {
     typedef unsigned long briq_index;
     enum Kind { INVL, CODE, SVAL, VCTR, CELL, };
 
     // TODO: wanna change name of ____
-    enum Type { ____, SMBL, };
+    enum Type { ____, NONE, SMBL, QUOT, PRIM, };
     typedef unsigned char byte;
 
+    class Stiq;
     class Briq {
     public:
         virtual bool is_atom() const = 0;
+        virtual Kind kind() const
+            { return INVL; }
         virtual Type type() const
             { return ____; }
         virtual bool is_self_evaluating() const
             { return true; }
-        virtual std::string to_s() const = 0;
+        virtual Briq* operator()(Stiq* stiq, Briq* b)
+            { return nullptr; }
+        virtual std::string info() const = 0;
+        virtual std::string to_s() const { return info(); };
         virtual void tree() const { std::cout << to_s() << std::endl; };
 
-        virtual void set_lptr(Briq *briq) {};
-        virtual void set_gptr(Briq *briq) {};
-        virtual Briq *l()
+        virtual void set_lptr(Briq *briq) { /*std::cout << "Briq::set_lptr" << std::endl;*/ };
+        virtual void set_gptr(Briq *briq) { /*std::cout << "Briq::set_gptr" << std::endl;*/ };
+        virtual Briq *l() const
             { return nullptr; }
-        virtual Briq *g()
+        virtual Briq *g() const
             { return nullptr; }
         virtual ~Briq();
     };
@@ -53,8 +60,10 @@ namespace briqs {
             { return true; }
     public:
         None() {};
-        std::string to_s() const
-            { return "None"; }
+        Type type() const
+            { return NONE; }
+        std::string info() const override
+            { return "NONE"; }
     };
 
     static None* none = new None();
@@ -66,8 +75,8 @@ namespace briqs {
     public:
         Bool(bool b) : bval_(b) {};
         bool bval();
-        std::string to_s() const
-            { return "Bool"; }
+        std::string info() const
+            { return bval_ ? "TVAL" : "FVAL"; }
     };
 
     static Bool* fval = new Bool(false);
@@ -77,7 +86,7 @@ namespace briqs {
         unsigned long ul_;
         bool is_atom() const
             { return true; }
-        std::string to_s() const
+        std::string info() const
             { return "Ui64"; }
         public:
             Ui64(unsigned long ul) : ul_(ul) {};
@@ -89,7 +98,7 @@ namespace briqs {
             { return true; }
     public:
         Text(std::string s) : bval(s) {};
-        std::string to_s() const
+        std::string info() const
             { return "Text"; }
     };
 
@@ -129,18 +138,18 @@ namespace briqs {
     class Cell : public Briq {
         Briq* lptr;
         Briq* gptr;
-        bool is_atom() const
-            { return false; }
-        std::string to_s() const
-            { return "Cell"; }
+        std::string info() const
+            { return "CELL"; }
     public:
         Cell() : lptr(nullptr), gptr(nullptr) {};
+        bool is_atom() const
+            { return false; }
         bool is_self_evaluating() const
             { return false; }
         void set_lptr(Briq *briq)
-            { lptr = briq; }
+            { /*std::cout << "Cell::set_lptr" << std::endl;*/ lptr = briq; }
         void set_gptr(Briq *briq)
-            { gptr = briq; }
+            { /*std::cout << "Cell::set_gptr" << std::endl;*/ gptr = briq; }
         Briq* l() const
             { return lptr; }
         Briq* g() const

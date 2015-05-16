@@ -10,36 +10,23 @@ void rep(const char* path) {
     std::cout << ss.str() << std::endl;
     // ss << "ab cd";
 
-    /*
-    Lexer lexer(ss, plate);
-    Tokn* tokn;
-    tokn = lexer.next_token();
-    while (tokn->type() != EOF_) {
-        std::cout << "|" << tokn->to_s();
-        // std::cout << tokn->type() << std::endl;
-        tokn = lexer.next_token();
-    }
-    */
-
-    Parser parser(ss);
-    parser.start();
-    parser.print();
+    Stiq stiq(ss, plate);
+    log("stiq parse");
+    stiq.print(stiq.parse());
+    log("");
+    log("stiq evaluate");
+    Briq *b = stiq.evaluate();
+    log("");
+    log("stiq print");
+    stiq.print(b);
 
     /*
-    Interpreter interpreter(ss);
-    cout << interpreter.eval() << endl;
+    stiq.print(stiq.eval(new Smbl("list")));
+    (*stiq.eval(new Smbl("list")))(&stiq, none);
     */
 }
 
-Briq* wowow(Briq* briq) { std::cout << "wowow wowow" << std::endl; return nullptr; }
-
 int main() {
-    [](){ std::cout << "Hello, world!" << std::endl; }();
-
-    std::function<Briq*(Briq*)> f = wowow;
-
-    f(nullptr);
-
     /*
     Baseplate* plate = new Baseplate();
     auto c = plate->make<Cell<None, None>>(none, none);
