@@ -1,0 +1,1 @@
+g++ -std=c++11 src/main2.cpp src/query.cpp src/facade.cpp src/db.cpp src/gc.cpp src/core.cpp -o briqs2
