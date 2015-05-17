@@ -390,8 +390,7 @@ namespace briqs {
     }
 
     Briq* quote(Stiq* stiq, Briq* briq) {
-        log("QUOT BEGN " + briq->info());
-        return briq;
+        return briq->l();
     }
 
     Briq* Stiq::evaluate() {
@@ -422,7 +421,7 @@ namespace briqs {
                 log(indent + "apply operator is none!");
                 result =  none;
             } else if (ope->type() == QUOT) {
-                result = (*ope)(stiq, briq->g()->l());
+                result = (*ope)(stiq, briq->g());
             } else {
                 Briq *args = list_of_values(stiq, briq->g());
                 result = stiq->apply(ope, args);
