@@ -355,26 +355,45 @@ namespace briqs {
     }
 
     void print(Briq *briq) {
-        std::function<void(Briq*, int)> print_internal = [&](Briq* b, int i){
+        if (briq->is_atom()) {
+            std::cout << briq->to_s();
+        } else {
+            std::cout << "(";
+            print(briq->l());
+            auto c = briq->g();
+            if (c != none) {
+                std::cout << " ";
+            }
+            while (c != none) {
+                std::cout << c->l()->to_s();
+                c = c->g();
+                if (c != none) {
+                    std::cout << " ";
+                }
+            }
+            std::cout << ")";
+        }
+    }
+
+    void print_tree(Briq *briq) {
+        std::function<void(Briq*, int)> print_tree_internal = [&](Briq* b, int i){
             std::string indent(i * 2, ' ');
             std::cout << indent << b->info() << std::endl;
             if (!b->is_atom()) {
                 auto lptr = b->l();
-                if (lptr) print_internal(lptr, i + 1);
+                if (lptr) print_tree_internal(lptr, i + 1);
                 auto gptr = b->g();
-                if (gptr) print_internal(gptr, i);
+                if (gptr) print_tree_internal(gptr, i);
             }
         };
-        print_internal(briq, 0);
+        print_tree_internal(briq, 0);
     }
 
     Briq* list_of_values(Stiq* stiq, Briq* old_list) {
-        // log("list_of_values "+old_list->info());
         auto old_cell = old_list;
         Briq* new_list_head = none;
         Briq* new_list_tail = none;
         while (old_cell != none) {
-            // log("list_of_values loop");
             auto new_cell = stiq->make_list_item(eval(stiq, old_cell->l()));
             if (new_list_tail == none) {
                 new_list_head = new_cell;
@@ -385,7 +404,6 @@ namespace briqs {
             }
             old_cell = old_cell->g();
         }
-        // log("list_of_values return "+old_list->info());
         return new_list_head;
     }
 
@@ -397,11 +415,16 @@ namespace briqs {
         result = plate->make<Cell>();
         depth = -1;
         result->set_lptr(eval(root->l()));
+        result->set_gptr(none);
         return result;
     }
 
     void Stiq::print(Briq* briq) {
         ::briqs::print(briq);
+    }
+
+    void Stiq::print_tree(Briq* briq) {
+        ::briqs::print_tree(briq);
     }
 
 
@@ -419,7 +442,7 @@ namespace briqs {
             Briq *ope = eval(stiq, briq->l());
             if (ope == none) {
                 log(indent + "apply operator is none!");
-                result =  none;
+                result = none;
             } else if (ope->type() == QUOT) {
                 result = (*ope)(stiq, briq->g());
             } else {

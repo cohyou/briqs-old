@@ -44,7 +44,7 @@ namespace briqs {
             { return nullptr; }
         virtual std::string info() const = 0;
         virtual std::string to_s() const { return info(); };
-        virtual void tree() const { std::cout << to_s() << std::endl; };
+        virtual std::string tree() const { return to_s(); };
 
         virtual void set_lptr(Briq *briq) { /*std::cout << "Briq::set_lptr" << std::endl;*/ };
         virtual void set_gptr(Briq *briq) { /*std::cout << "Briq::set_gptr" << std::endl;*/ };
@@ -64,6 +64,8 @@ namespace briqs {
             { return NONE; }
         std::string info() const override
             { return "NONE"; }
+        std::string to_s() const override
+            { return "N"; }
     };
 
     static None* none = new None();
@@ -75,8 +77,10 @@ namespace briqs {
     public:
         Bool(bool b) : bval_(b) {};
         bool bval();
-        std::string info() const
+        std::string info() const override
             { return bval_ ? "TVAL" : "FVAL"; }
+        std::string to_s() const override
+            { return bval_ ? "T" : "F"; }
     };
 
     static Bool* fval = new Bool(false);
@@ -155,7 +159,7 @@ namespace briqs {
         Briq* g() const
             { return gptr; }
 
-        void tree() const;
+        std::string tree();
     };
 
     const Bool* btob(bool b);

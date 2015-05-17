@@ -20,21 +20,8 @@ namespace briqs {
 
     // Sgfr::~Sgfr() {}
 
-    void Cell::tree() const {
-        std::cout << to_s() << std::endl;
-        std::cout << "l:";
-        if (lptr) {
-            lptr->tree();
-        } else {
-            std::cout << "なし" << std::endl;
-        }
-        std::cout << "g:";
-        if (gptr) {
-            gptr->tree();
-        } else {
-            std::cout << "なし" << std::endl;
-        }
-        std::cout << "----" << std::endl;
+    std::string Cell::tree() {
+        return "";
     }
 
 } // namespace briqs

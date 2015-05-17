@@ -125,6 +125,7 @@ namespace briqs {
         Briq* parse();
         Briq* evaluate();
         void print(Briq* briq);
+        void print_tree(Briq* briq);
         template <class T>
         Cell* make_list_item(T* briq);
     private:

@@ -12,14 +12,18 @@ void rep(const char* path) {
 
     Stiq stiq(ss, plate);
     log("stiq parse");
-    stiq.print(stiq.parse());
+    Briq *p = stiq.parse();
+    stiq.print_tree(p);
+    stiq.print(p->l());
     log("");
     log("stiq evaluate");
     Briq *b = stiq.evaluate();
     log("");
     log("stiq print");
-    stiq.print(b);
-
+    stiq.print_tree(b);
+    stiq.print(b->l());
+    log("");
+    
     /*
     stiq.print(stiq.eval(new Smbl("list")));
     (*stiq.eval(new Smbl("list")))(&stiq, none);
