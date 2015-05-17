@@ -242,12 +242,12 @@ namespace briqs {
     }
 
     void Stiq::elements() {
+        before();
         while (current_token->type() != EOF_ &&
                current_token->type() != RBCT) {
-            before();
             element();
-            after();
         }
+        after();
     }
 
     void Stiq::match(int x) {
@@ -369,12 +369,12 @@ namespace briqs {
     }
 
     Briq* list_of_values(Stiq* stiq, Briq* old_list) {
-        log("list_of_values "+old_list->info());
+        // log("list_of_values "+old_list->info());
         auto old_cell = old_list;
         Briq* new_list_head = none;
         Briq* new_list_tail = none;
         while (old_cell != none) {
-            log("list_of_values loop");
+            // log("list_of_values loop");
             auto new_cell = stiq->make_list_item(eval(stiq, old_cell->l()));
             if (new_list_tail == none) {
                 new_list_head = new_cell;
@@ -385,17 +385,18 @@ namespace briqs {
             }
             old_cell = old_cell->g();
         }
-        log("list_of_values return "+old_list->info());
+        // log("list_of_values return "+old_list->info());
         return new_list_head;
     }
 
     Briq* quote(Stiq* stiq, Briq* briq) {
-        log("I'm primitive function!!");
+        log("QUOT BEGN " + briq->info());
         return briq;
     }
 
     Briq* Stiq::evaluate() {
         result = plate->make<Cell>();
+        depth = -1;
         result->set_lptr(eval(root->l()));
         return result;
     }
@@ -407,26 +408,29 @@ namespace briqs {
 
     // Evaluator
     Briq* eval(Stiq* stiq, Briq* briq) {
-        log("eval start "+briq->info());
+        ++(stiq->depth);
         Briq *result = nullptr;
+        std::string indent(stiq->depth * 2, ' ');
+        log(indent + "EVAL BEGN " + briq->info());
+
         if (briq->is_self_evaluating()) { result = briq; }
-        else if (briq->type() == SMBL) { log("smbl"); result = stiq->resolve_symbol(briq); }
+        else if (briq->type() == SMBL)
+            { result = stiq->resolve_symbol(briq); }
         else if (!briq->is_atom()) {
             Briq *ope = eval(stiq, briq->l());
             if (ope == none) {
-                log("apply operator is none!");
+                log(indent + "apply operator is none!");
                 result =  none;
             } else if (ope->type() == QUOT) {
-                log("ope");
-                result =  (*ope)(stiq, briq->g());
+                result = (*ope)(stiq, briq->g()->l());
             } else {
-                log("before list_of_values");
                 Briq *args = list_of_values(stiq, briq->g());
-                log("after list_of_values");
                 result = stiq->apply(ope, args);
             }
         }
-        log("eval end "+result->info());
+
+        log(indent + "EVAL FNSH " + result->info());
+        --(stiq->depth);
         return result;
     }
 

@@ -161,6 +161,8 @@ namespace briqs {
         Briq* eval(Briq *briq);
         Briq* apply(Briq* proc, Briq* args);
         Briq* resolve_symbol(Briq* smbl);
+    public:
+        int depth;
     };
 
     /*
