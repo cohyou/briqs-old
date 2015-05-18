@@ -33,6 +33,11 @@ namespace briqs {
 
         template<class T>
         T* load(briq_index index);
+
+        void clear();
+    private:
+        void prepare();
+        std::string get_file_path();
     };
 
     template<class T>

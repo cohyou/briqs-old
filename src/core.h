@@ -27,7 +27,7 @@ namespace briqs {
     enum Kind { INVL, CODE, SVAL, VCTR, CELL, };
 
     // TODO: wanna change name of ____
-    enum Type { ____, NONE, SMBL, QUOT, PRIM, };
+    enum Type { ____, NONE, TEXT, SMBL, SPFM, PRIM, FUNC, };
     typedef unsigned char byte;
 
     class Stiq;
@@ -45,6 +45,7 @@ namespace briqs {
         virtual std::string info() const = 0;
         virtual std::string to_s() const { return info(); };
         virtual std::string tree() const { return to_s(); };
+        virtual std::string name() const { return to_s(); };
 
         virtual void set_lptr(Briq *briq) { /*std::cout << "Briq::set_lptr" << std::endl;*/ };
         virtual void set_gptr(Briq *briq) { /*std::cout << "Briq::set_gptr" << std::endl;*/ };
@@ -102,8 +103,14 @@ namespace briqs {
             { return true; }
     public:
         Text(std::string s) : bval(s) {};
-        std::string info() const
-            { return "Text"; }
+        Type type() const override
+            { return TEXT; }
+        std::string info() const override
+            { return "Text\"" + bval + "\""; }
+        std::string to_s() const override
+            { return "\"" + bval + "\""; }
+        std::string name() const override
+            { return bval; };
     };
 
     // class Cell;
@@ -162,8 +169,8 @@ namespace briqs {
         std::string tree();
     };
 
-    const Bool* btob(bool b);
-    bool is_atom(const Briq* b);
+    Bool* btob(bool b);
+    bool is_atom(Briq* b);
     void msg_exit(std::string msg);
 
 } // namespace briqs

@@ -12,6 +12,8 @@ namespace briqs {
         template <class T>
         T* load(briq_index index, std::string bucket_name);
 
+        void clear_bucket(std::string bucket_name);
+
         ~Baseplate();
 
     private:

@@ -60,6 +60,27 @@ namespace briqs {
     };
 
     class Func : public Briq {
+    public:
+        Func(Briq* params, Briq* body)
+        : func_params(params), func_body(body) {};
+    private:
+        Briq* func_params;
+        Briq* func_body;
+    private:
+        bool is_atom() const override
+            { return true; }
+        /*
+        std::string info() const override
+            { return "FUNC"; }
+        */
+        std::string info() const override;
+        // std::string to_s() const override;
+        Type type() const
+            { return FUNC; }
+        Briq* l() const
+            { return func_params; }
+        Briq* g() const
+            { return func_body; }
     };
 
     class Scope {
@@ -86,14 +107,17 @@ namespace briqs {
     Briq* list_of_values(Stiq* stiq, Briq* old_list);
 
     Briq* apply(Briq* proc, Briq* args);
+    Briq* define(Briq* proc, Briq* args);
 
     class Stiq {
     public:
         Stiq(const std::stringstream& ss, Baseplate *p);
         ~Stiq();
-    private:
+    public:
         // common
         Baseplate *plate;
+    private:
+        // common
         std::stringstream input;
 
         // Lexer
@@ -118,7 +142,7 @@ namespace briqs {
         Tokn* current_token;
         std::stack<Briq*> node_stack;
         Briq* result;
-
+    public:
         // Evaluator
         std::stack<Scope*> scope_stack;
     public:
@@ -146,7 +170,7 @@ namespace briqs {
         void element();
         void elements();
         void list();
-        void quote();
+        void make_quoted_list();
         void text();
 
         void add();
@@ -165,6 +189,8 @@ namespace briqs {
     public:
         int depth;
     };
+
+    Briq* sequence(Stiq* stiq, Briq *seq_list);
 
     /*
     Briq* car(const Briq* b);

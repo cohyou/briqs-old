@@ -23,11 +23,6 @@ void rep(const char* path) {
     stiq.print_tree(b);
     stiq.print(b->l());
     log("");
-    
-    /*
-    stiq.print(stiq.eval(new Smbl("list")));
-    (*stiq.eval(new Smbl("list")))(&stiq, none);
-    */
 }
 
 int main() {

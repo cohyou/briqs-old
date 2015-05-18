@@ -3,10 +3,10 @@
 namespace briqs {
     Briq::~Briq() {}
 
-    const Bool* btob(bool b)
+    Bool* btob(bool b)
         { return b ? tval : fval; }
 
-    bool is_atom(const Briq* b)
+    bool is_atom(Briq* b)
         { return b->is_atom(); }
 
     void msg_exit(std::string msg)

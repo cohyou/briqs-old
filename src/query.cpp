@@ -25,64 +25,6 @@ namespace briqs {
     }
     */
 
-    Briq* cond(Briq* args)
-    {
-        // TODO: should decide how evaluate first argument to Bool*
-        return args;
-    }
-
-    Briq *lambda(Briq* args)
-    {
-        // TODO: should decide internal specification of 'lambda form'
-        return args;
-    }
-
-    Briq *define(Briq* args)
-    {
-        // TODO: should implement this method
-        // TODO: need environment for this method
-        return args;
-    }
-
-
-    // functions
-    /*
-    const Bool* atom(const Briq* b)
-        { return btob(is_atom(b)); }
-
-    template<class L, class G>
-    Cell<L, G>* cons(L* l, G* g)
-    {
-        // TODO: should use Baseplate's make_cell
-        return new Cell<L, G>(l, g);
-    }
-
-    Briq* car(const Briq* b)
-    {
-        msg_exit("required list for car, but it's not list.");
-        return nullptr; // never reached
-    }
-
-    template<class L, class G>
-    G* cdr(const Cell<L, G>* c)
-    {
-        return c->g();
-    }
-
-    Briq* cdr(const Briq* b)
-    {
-        msg_exit("required list for cdr, but it's not list.");
-        return nullptr; // never reached
-    }
-
-    const Bool* eq(const Briq* b1, const Briq* b2)
-    {
-        // TODO: should make function resulting not 'Bool*' but 'bool'?
-        // TODO: should re-think equality of briq
-        return btob(b1 == b2);
-    }
-    */
-
     Scope::Scope() : name(""), enclosing_scope(nullptr) {}
     Scope::Scope(std::string n, Scope *parent) : name(n), enclosing_scope(parent) {}
 
@@ -112,7 +54,7 @@ namespace briqs {
         root->set_gptr(none);
         current_node = root;
 
-        auto smbl = plate->make<Smbl>("list");
+        auto smbl = plate->make<Smbl>(" ");
         add_child(smbl);
 
         consume_token();
@@ -205,12 +147,15 @@ namespace briqs {
         { current_token = next_token(); }
 
     void Stiq::before() {
-        auto *new_cell = add_child<Cell>(nullptr);
+        auto* new_cell = add_child<Cell>(nullptr);
         node_stack.push(current_node);
         current_node = new_cell;
     }
 
     void Stiq::after() {
+        if (!current_node->l()) {
+            current_node->set_lptr(none);
+        }
         current_node = node_stack.top();
         node_stack.pop();
     }
@@ -227,7 +172,7 @@ namespace briqs {
             break;
 
             case SGQT:
-            quote();
+            make_quoted_list();
             break;
 
             case DBQT:
@@ -264,7 +209,7 @@ namespace briqs {
         match(RBCT);
     }
 
-    void Stiq::quote() {
+    void Stiq::make_quoted_list() {
         match(SGQT);
         before();
         add_child(plate->make<Smbl>("Q"));
@@ -359,13 +304,9 @@ namespace briqs {
             std::cout << briq->to_s();
         } else {
             std::cout << "(";
-            print(briq->l());
-            auto c = briq->g();
-            if (c != none) {
-                std::cout << " ";
-            }
+            auto c = briq;
             while (c != none) {
-                std::cout << c->l()->to_s();
+                print(c->l());
                 c = c->g();
                 if (c != none) {
                     std::cout << " ";
@@ -387,6 +328,24 @@ namespace briqs {
             }
         };
         print_tree_internal(briq, 0);
+    }
+
+    Briq* top_level(Stiq* stiq, Briq* old_list) {
+        auto old_cell = old_list;
+        Briq* new_list_head = none;
+        Briq* new_list_tail = none;
+        while (old_cell != none) {
+            auto new_cell = stiq->make_list_item(old_cell->l());
+            if (new_list_tail == none) {
+                new_list_head = new_cell;
+                new_list_tail = new_list_head;
+            } else {
+                new_list_tail->set_gptr(new_cell);
+                new_list_tail = new_cell;
+            }
+            old_cell = old_cell->g();
+        }
+        return new_list_head;
     }
 
     Briq* list_of_values(Stiq* stiq, Briq* old_list) {
@@ -433,7 +392,7 @@ namespace briqs {
         ++(stiq->depth);
         Briq *result = nullptr;
         std::string indent(stiq->depth * 2, ' ');
-        log(indent + "EVAL BEGN " + briq->info());
+        std::cout << indent << "EVAL BEGN "; print(briq); std::cout << std::endl;
 
         if (briq->is_self_evaluating()) { result = briq; }
         else if (briq->type() == SMBL)
@@ -443,7 +402,7 @@ namespace briqs {
             if (ope == none) {
                 log(indent + "apply operator is none!");
                 result = none;
-            } else if (ope->type() == QUOT) {
+            } else if (ope->type() == SPFM) {
                 result = (*ope)(stiq, briq->g());
             } else {
                 Briq *args = list_of_values(stiq, briq->g());
@@ -451,7 +410,7 @@ namespace briqs {
             }
         }
 
-        log(indent + "EVAL FNSH " + result->info());
+        std::cout << indent << "EVAL FNSH "; print(result); std::cout << std::endl;
         --(stiq->depth);
         return result;
     }
@@ -460,8 +419,36 @@ namespace briqs {
         return ::briqs::eval(this, briq);
     }
 
+    Briq* exec_func(Stiq* stiq, Briq *lmbd, Briq *args) {
+        Briq *result = nullptr;
+        Briq *params = lmbd->l();
+        Briq *lambda_body = lmbd->g();
+
+        stiq->scope_stack.push(new Scope("FuncScope", stiq->scope_stack.top()));
+
+        while (params != none) {
+            Briq* param_smbl = params->l();
+            std::string symbol_name = param_smbl->to_s();
+            Briq* resolved_param = eval(stiq, args->l());
+            stiq->scope_stack.top()->define(symbol_name, resolved_param);
+            params = params->g();
+            args = args->g();
+        }
+        print(lambda_body);
+        result = sequence(stiq, lambda_body);
+
+        Scope *top = stiq->scope_stack.top();
+        delete top;
+        stiq->scope_stack.pop();
+
+        return result;
+    }
+
     Briq* Stiq::apply(Briq* proc, Briq* args) {
         if (proc->type() == PRIM) { return (*proc)(this, args); }
+        else if (proc->type() == FUNC) {
+            return exec_func(this, proc, args);
+        }
         return none;
     }
 
@@ -474,10 +461,162 @@ namespace briqs {
         return ::briqs::list_of_values(this, old_list);
     }
 
+    Briq* define_symbol(Stiq* stiq, Briq* args) {
+        // TODO: need environment for this method
+        Briq *sym = args->l();
+        Briq *cnt = eval(stiq, args->g()->l());
+        stiq->scope_stack.top()->define(sym->to_s(), cnt);
+        return sym;
+    }
+
+    Briq* cond(Stiq* stiq, Briq* args)
+    {
+        // TODO: should decide how evaluate first argument to Bool*
+        Briq *result = nullptr;
+        Briq *p = eval(stiq, args->l());
+        if (p != none && p != fval && !(!p->is_atom() && !p->l())) {
+            result = eval(stiq, args->g()->l());
+        } else {
+            if (args->g()->g()) {
+                result = eval(stiq, args->g()->g()->l());
+            } else {
+                result = none;
+            }
+        }
+        return result;
+    }
+
+    Briq* sequence(Stiq* stiq, Briq *seq_list) {
+        Briq *result = none;
+        Briq *statement = seq_list;
+        while (statement != none) {
+            if (statement->g() != none) {
+                eval(stiq, statement->l());
+            } else {
+                result = eval(stiq, statement->l());
+            }
+            statement = statement->g();
+        }
+        return result;
+    }
+
+    std::string Func::info() const {
+        log("params:"); print(func_params);
+        log("\nbody:"); print(func_body);log("");
+        return "FUNC";
+    }
+
+    Briq *lambda(Stiq* stiq, Briq* args)
+    {
+        // TODO: should decide internal specification of 'lambda form'
+        Briq* result = nullptr;
+
+        if (args->g()) {
+            Briq *parameters = args->l();
+            result = stiq->plate->make<Func>(args->l(), args->g());
+        } else {
+            log("!!!! INVL ARGS LMBD !!!!");
+        }
+
+        return result;
+    }
+
+    // functions
+    Bool* atom(Stiq* stiq, Briq* args)
+        { return btob(is_atom(args->l())); }
+
+    Briq* cons(Stiq* stiq, Briq* args) {
+        // TODO: should use Baseplate's make_cell
+        auto new_cell = stiq->plate->make<Cell>();
+        new_cell->set_lptr(args->l());
+        new_cell->set_gptr(args->g()->l());
+        return new_cell;
+    }
+
+    Briq* car(Stiq* stiq, Briq* args) {
+        Briq *result = none;
+        print(args);
+        if (args->l() != none) {
+            result = args->l()->l();
+        } else {
+            result = none;
+        }
+
+        return result;
+    }
+
+    Briq* cdr(Stiq* stiq, Briq* args) {
+        Briq *result = none;
+
+        if (args->l() != none) {
+            result = args->l()->g();
+        } else {
+            result = none;
+        }
+
+        return result;
+    }
+
+    Briq* eq(Stiq* stiq, Briq *args) {
+        // TODO: should make function resulting not 'Bool*' but 'bool'?
+        // TODO: should re-think equality of briq
+        Briq *result = nullptr;
+
+        Briq *arg1 = args->l();
+        Briq *arg2 = args->g()->l();
+
+        if (arg1 == fval || arg1 == tval) {
+            result = btob(arg1 == arg2);
+        } else if (arg1->type() == TEXT || arg1->type() == SMBL) {
+            result = btob(arg1->to_s() == arg2->to_s());
+        } else {
+            result = fval;
+        }
+        return result;
+    }
+
+    // other primitives
+    Briq* clear_bucket(Stiq *stiq, Briq *args) {
+        Briq *bucket_text = args->l();
+        stiq->plate->clear_bucket(bucket_text->name());
+        return bucket_text; // plate->load_briq(0, bucket_text->name(), 0);
+    }
+
     Primitives::Primitives() {
         symbol_table = {
+            {" ", new Prim(top_level)},
+
+            {"Q", new Prim(quote, SPFM)},
+            {":", new Prim(define_symbol, SPFM)},
+            {"?", new Prim(cond, SPFM)},
+            {"^", new Prim(lambda, SPFM)},
+
+            {"@", new Prim(atom)},
+            {"=", new Prim(eq)},
+            {"~", new Prim(cons)},
+            {"L", new Prim(car)},
+            {"G", new Prim(cdr)},
+
             {"list", new Prim(list_of_values)},
-            {"Q", new Prim(quote, QUOT)},
+
+            {"bucket", new Prim(clear_bucket)},
+            /*
+            {"setl", new Prim(setl)},
+            {"setg", new Prim(setg)},
+            {"index", new Prim(index)},
+            {"save", new Prim(save)},
+            {"load", new Prim(load)},
+
+            {"save-recursive", new Prim(save_recursive)},
+            {"import", new Prim(import)},
+            {"to_s", new Prim(to_s)},
+            {"print", new Prim(print)},
+            {"println", new Prim(println)},
+            {"string", new Prim(str)},
+            {"ln", new Prim(ln)},
+            {"<", new Prim(lt)},
+            {">", new Prim(gt)},
+            */
         };
     };
 } // namespace briqs

@@ -15,6 +15,11 @@ namespace briqs {
         return bucket;
     }
 
+    void Baseplate::clear_bucket(std::string bucket_name) {
+        Bucket *bucket = get_bucket(bucket_name);
+        bucket->clear();
+    }
+
     Baseplate::~Baseplate() {
         for (auto it = buckets.begin(); it != buckets.end(); ++it) {
             delete it->second;
