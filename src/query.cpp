@@ -577,9 +577,52 @@ namespace briqs {
 
     // other primitives
     Briq* clear_bucket(Stiq *stiq, Briq *args) {
-        Briq *bucket_text = args->l();
+        Briq* bucket_text = args->l();
         stiq->plate->clear_bucket(bucket_text->name());
         return bucket_text; // plate->load_briq(0, bucket_text->name(), 0);
+    }
+
+    Briq* setl(Stiq* stiq, Briq* args) {
+        Briq* arg1 = args->l();
+        Briq* arg2 = args->g()->l();
+        arg1->set_lptr(arg2);
+        return arg1;
+    }
+
+    Briq* setg(Stiq *stiq, Briq *args) {
+        Briq* arg1 = args->l();
+        Briq* arg2 = args->g()->l();
+        arg1->set_gptr(arg2);
+        return arg1;
+    }
+
+    Briq* save(Stiq* stiq, Briq* args) {
+        Briq *save_target = args->l();
+        Briq *bucket_text = args->g()->l();
+
+        stiq->plate->save(save_target, bucket_text->name());
+        return save_target;
+    }
+
+    Briq* load(Stiq* stiq, Briq *args) {
+        Briq *briq_id = args->l();
+        Briq *bucket_text = args->g()->l();
+
+        return stiq->plate->load<Cell>(briq_id->lval(), bucket_text->name());
+    }
+
+    Briq* import(Stiq* stiq, Briq *args) {
+        Briq *result = none;
+        Briq *bucket_text = args->l();
+
+        Briq *ent = stiq->plate->load<Cell>(0, bucket_text->name());
+        Briq *statement = ent->l();
+        result = statement;
+        while (statement) {
+            result = eval(stiq, statement->l());
+            statement = statement->g();
+        }
+        return result;
     }
 
     Primitives::Primitives() {
@@ -600,15 +643,17 @@ namespace briqs {
             {"list", new Prim(list_of_values)},
 
             {"bucket", new Prim(clear_bucket)},
-            /*
             {"setl", new Prim(setl)},
             {"setg", new Prim(setg)},
-            {"index", new Prim(index)},
             {"save", new Prim(save)},
             {"load", new Prim(load)},
 
-            {"save-recursive", new Prim(save_recursive)},
             {"import", new Prim(import)},
+
+            /*
+            {"index", new Prim(index)},
+
+            {"save-recursive", new Prim(save_recursive)},
             {"to_s", new Prim(to_s)},
             {"print", new Prim(print)},
             {"println", new Prim(println)},
