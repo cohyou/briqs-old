@@ -7,10 +7,12 @@ namespace briqs {
         T* make(Types... tpl);
 
         template <class T>
-        void save(T* briq, std::string bucket_name);
+        Briq* save_briq(T* briq, std::string bucket_name);
 
-        template <class T>
-        T* load(briq_index index, std::string bucket_name);
+        Briq* save_briq_recursive(Briq* briq, std::string bucket_name);
+
+        // template <class T>
+        Briq* load(briq_index index, std::string bucket_name);
 
         void clear_bucket(std::string bucket_name);
 
@@ -31,16 +33,8 @@ namespace briqs {
     }
 
     template <class T>
-    void Baseplate::save(T* briq, std::string bucket_name) {
+    Briq* Baseplate::save_briq(T* briq, std::string bucket_name) {
         auto bucket = get_bucket(bucket_name);
-        bucket->save(briq);
-    }
-
-    template <class T>
-    T* Baseplate::load(briq_index index, std::string bucket_name) {
-        auto bucket = get_bucket(bucket_name);
-        auto briq = bucket->load<T>(index);
-        pile.add_briq(briq);
-        return briq;
+        return bucket->save(briq);
     }
 } // namespace briqs

@@ -10,12 +10,12 @@ namespace briqs {
     class Tokn : public Briq {
         ToknType type_;
         std::string name_;
-        bool is_atom() const
+        bool is_atom() const override
             { return true; }
     public:
         Tokn(ToknType t, std::string n)
             : type_(t), name_(n) {};
-        std::string info() const
+        std::string info() const override
             { return name_; }
         ToknType type()
             { return type_; };
@@ -26,17 +26,17 @@ namespace briqs {
     public:
         Smbl(std::string n)
             : name_(n) {};
-        Type type() const
+        Type type() const override
             { return SMBL; }
         bool is_self_evaluating() const override
             { return false; }
     private:
         std::string name_;
-        bool is_atom() const
+        bool is_atom() const override
             { return true; }
-        std::string info() const
+        std::string info() const override
             { return "SMBL[" + name_ + "]"; }
-        std::string to_s() const
+        std::string to_s() const override
             { return name_; }
     };
 
@@ -47,15 +47,15 @@ namespace briqs {
         Prim(std::function<Briq*(Stiq*, Briq*)> f, Type t) : p(f), type_(t) {};
         Briq* operator()(Stiq* stiq, Briq* briq) override
             { return p(stiq, briq); }
-        Type type() const
+        Type type() const override
             { return type_; }
     private:
         Type type_;
         std::function<Briq*(Stiq*, Briq*)> p;
     private:
-        bool is_atom() const
+        bool is_atom() const override
             { return true; }
-        std::string info() const
+        std::string info() const override
             { return "PRIM"; }
     };
 
@@ -75,11 +75,11 @@ namespace briqs {
         */
         std::string info() const override;
         // std::string to_s() const override;
-        Type type() const
+        Type type() const override
             { return FUNC; }
-        Briq* l() const
+        Briq* l() override
             { return func_params; }
-        Briq* g() const
+        Briq* g() override
             { return func_body; }
     };
 

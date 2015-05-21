@@ -1,6 +1,19 @@
 #include "facade.h"
 
 namespace briqs {
+    Briq* Baseplate::save_briq_recursive(Briq* briq, std::string bucket_name) {
+        Bucket *bucket = get_bucket(bucket_name);
+        return bucket->save_recursive(briq);
+    }
+
+    // template <class T>
+    Briq* Baseplate::load(briq_index index, std::string bucket_name) {
+        auto bucket = get_bucket(bucket_name);
+        auto briq = bucket->load(index);
+        pile.add_briq(briq);
+        return briq;
+    }
+
     Bucket* Baseplate::get_bucket(std::string bucket_name) {
         Bucket* bucket = nullptr;
 

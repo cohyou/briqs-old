@@ -49,6 +49,7 @@ namespace briqs {
         input << ss.rdbuf();
         consume_char();
 
+
         // Parser
         root = plate->make<Cell>();
         root->set_gptr(none);
@@ -58,6 +59,7 @@ namespace briqs {
         add_child(smbl);
 
         consume_token();
+
 
         // Evaluator
         auto primitives = new Primitives();
@@ -286,7 +288,6 @@ namespace briqs {
                 c = c->g();
             }
         }
-
         return new_cell;
     }
 
@@ -600,22 +601,21 @@ namespace briqs {
         Briq *save_target = args->l();
         Briq *bucket_text = args->g()->l();
 
-        stiq->plate->save(save_target, bucket_text->name());
-        return save_target;
+        return stiq->plate->save_briq(save_target, bucket_text->name());
     }
 
     Briq* load(Stiq* stiq, Briq *args) {
         Briq *briq_id = args->l();
         Briq *bucket_text = args->g()->l();
 
-        return stiq->plate->load<Cell>(briq_id->lval(), bucket_text->name());
+        return stiq->plate->load(briq_id->ul(), bucket_text->name());
     }
 
     Briq* import(Stiq* stiq, Briq *args) {
         Briq *result = none;
         Briq *bucket_text = args->l();
 
-        Briq *ent = stiq->plate->load<Cell>(0, bucket_text->name());
+        Briq *ent = stiq->plate->load(0, bucket_text->name());
         Briq *statement = ent->l();
         result = statement;
         while (statement) {
@@ -623,6 +623,70 @@ namespace briqs {
             statement = statement->g();
         }
         return result;
+    }
+
+    Briq* index(Stiq* stiq, Briq *args) {
+        Briq *arg1 = args->l();
+        return stiq->plate->make<Ui64>(arg1->get_index());
+    }
+
+    Briq* to_s(Stiq* stiq, Briq *args) {
+        Briq *target = args->l();
+        return stiq->plate->make<Text>(target->to_s());
+    }
+
+    Briq* print_no_break(Stiq* stiq, Briq *args) {
+        Briq *target = args->l();
+        std::cout << target->name();
+        return none;
+    }
+
+    Briq* print_break(Stiq* stiq, Briq *args) {
+        Briq *target = args->l();
+        std::cout << target->name() << std::endl;
+        return none;
+    }
+
+    Briq* str(Stiq* stiq, Briq *args) {
+        std::stringstream ss;
+        Briq* arg_list = args;
+        while (arg_list) {
+            Briq* arg = arg_list->l();
+            ss << arg->name();
+            arg_list = arg_list->g();
+        }
+        return stiq->plate->make<Text>(ss.str());
+    }
+
+    Briq* ln(Stiq* stiq, Briq *args) {
+        return stiq->plate->make<Text>("\n");
+    }
+
+    Briq* gt(Stiq* stiq, Briq *args) {
+        Briq *result = none;
+        Briq *arg1 = args->l();
+        Briq *arg2 = args->g()->l();
+        if (arg1->type() == TEXT) {
+            result = btob(arg1->vstr() > arg2->vstr());
+        }
+        return result;
+    }
+
+    Briq* lt(Stiq* stiq, Briq *args) {
+        Briq *result = none;
+        Briq *arg1 = args->l();
+        Briq *arg2 = args->g()->l();
+        if (arg1->type() == TEXT) {
+            result = btob(arg1->vstr() < arg2->vstr());
+        }
+        return result;
+    }
+
+    Briq* save_recursive(Stiq* stiq, Briq *args) {
+        Briq *save_target = args->l();
+        Briq *bucket_text = args->g()->l();
+
+        return stiq->plate->save_briq_recursive(save_target, bucket_text->name());
     }
 
     Primitives::Primitives() {
@@ -650,18 +714,17 @@ namespace briqs {
 
             {"import", new Prim(import)},
 
-            /*
             {"index", new Prim(index)},
 
-            {"save-recursive", new Prim(save_recursive)},
             {"to_s", new Prim(to_s)},
-            {"print", new Prim(print)},
-            {"println", new Prim(println)},
+            {"print", new Prim(print_no_break)},
+            {"println", new Prim(print_break)},
             {"string", new Prim(str)},
             {"ln", new Prim(ln)},
             {"<", new Prim(lt)},
             {">", new Prim(gt)},
-            */
+
+            {"save-recursive", new Prim(save_recursive)},
         };
     };
 } // namespace briqs

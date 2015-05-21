@@ -11,6 +11,7 @@ void rep(const char* path) {
     // ss << "ab cd";
 
     Stiq stiq(ss, plate);
+    /*
     log("stiq parse");
     Briq *p = stiq.parse();
     stiq.print_tree(p);
@@ -23,6 +24,7 @@ void rep(const char* path) {
     stiq.print_tree(b);
     stiq.print(b->l());
     log("");
+    */
 }
 
 int main() {
@@ -47,6 +49,24 @@ int main() {
     auto load_1 = plate->load<Bool>(1, bucket_name);
     std::cout << load_1->to_s() << std::endl;
     std::cout << load_1->bval() << std::endl;
+    */
+
+    /*
+    Bucket* bucket1 = new Bucket("beatles");
+    Bucket* bucket2 = new Bucket("beatless");
+    if (*bucket1 == *bucket2) {
+        log("eq");
+    } else {
+        log("not eq");
+    }
+
+    Dntr* dntr1 = new Dntr(bucket1, 1);
+    Dntr* dntr2 = new Dntr(bucket2, 1);
+    if ((*dntr1) == (*dntr2)) {
+        log("eq");
+    } else {
+        log("not eq");
+    }
     */
 
     std::string path = "stiq/__.iq";
