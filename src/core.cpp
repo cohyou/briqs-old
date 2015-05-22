@@ -15,23 +15,44 @@ namespace briqs {
         exit(1);
     }
 
+    void Briq::set_target_bucket(std::string bucket_name)
+        { target_bucket_name = bucket_name; }
+
     bool Briq::exists_in(std::string bucket_name) {
         bool result = false;
         auto it = std::find_if(signifiers.begin(), signifiers.end(),
-        [=](std::shared_ptr<Sgfr> sgfr){ return (*sgfr).bucket_name() == bucket_name; });
+        [=](Sgfr* sgfr){ return (*sgfr).bucket_name() == bucket_name; });
+        return it != signifiers.end();
+    }
+
+    bool Briq::has_valid_index()
+        { return (exists_in(target_bucket_name)); }
+
+    briq_index Briq::get_index_of(string bucket_name) {
+        auto it = std::find_if(signifiers.begin(), signifiers.end(),
+        [=](Sgfr* sgfr){ return (*sgfr).bucket_name() == bucket_name; });
         if (it != signifiers.end()) {
-            result = true;
+            return (*it)->get_index();
+        } else {
+            return ULONG_MAX;
         }
-        return result;
     }
 
-    bool Briq::has_valid_index() {
-        return (exists_in(target_signifier->bucket_name()));
+    briq_index Briq::get_index() const
+        { return get_index_of(target_bucket_name); }
+
+    void Briq::set_index_of(string bucket_name, briq_index idx) {
+        auto it = std::find_if(signifiers.begin(), signifiers.end(),
+        [=](Sgfr* sgfr){ return (*sgfr).bucket_name() == bucket_name; });
+        if (it != signifiers.end()) {
+            return (*it)->set_index(idx);
+        } else {
+            return signifiers.insert();
+        }
     }
 
-    void Briq::set_index(briq_index idx) {
-        target_signifier->set_index(idx);
-    }
+    void Briq::set_index(briq_index idx)
+        { set_index_of(target_bucket_name, idx); }
 
     bool Bool::bval()
         { return bval_; }

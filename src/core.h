@@ -49,17 +49,12 @@ namespace briqs {
         virtual std::string bucket_name() { return ""; };
         virtual briq_index get_index() { return ULONG_MAX; };
         virtual void set_index(briq_index idx) {};
-        /*
-        virtual Cell* get_cell() = 0;
-        virtual Briq* get_sval() = 0;
-        virtual ~Sgfr();
-        */
     };
 
     class Stiq;
     class Briq {
     protected:
-        Sgfr* target_signifier;
+        std::string target_bucket_name;
         std::set<Sgfr*> signifiers;
     public:
         virtual bool is_atom() const = 0;
@@ -81,31 +76,21 @@ namespace briqs {
         virtual void set_gptr(Briq *briq) {};
         void set_sgfr(Sgfr* sgfr)
             { signifiers.insert(sgfr); }
-        // virtual void set_lsgr(std::shared_ptr<Sgfr> sgfr) {};
-        // virtual void set_gsgr(std::shared_ptr<Sgfr> sgfr) {};
-        // virtual void set_ldtr_bucket(std::string bucket_name) {};
-        // virtual void set_gdtr_bucket(std::string bucket_name) {};
-        void set_target_bucket(std::string bucket_name) {
-            auto it = std::find_if(signifiers.begin(), signifiers.end(),
-            [=](Sgfr* sgfr){ return (*sgfr).bucket_name() == bucket_name; });
-            if (it == signifiers.end()) {
-                std::cout << "そのbucketは存在しません" << std::endl;
-            } else {
-                target_signifier = *it;
-            }
-        }
+        void set_target_bucket(std::string bucket_name);
         virtual Briq *l()
             { return nullptr; }
         virtual Briq *g()
             { return nullptr; }
         virtual ~Briq();
         virtual byte* cast_to_data() { return nullptr; };
-        virtual briq_index get_index() const { return target_signifier->get_index(); };
+        virtual briq_index get_index() const;
         virtual void set_index(briq_index idx);
         virtual std::string vstr() const { return ""; };
         bool has_valid_index();
     private:
         bool exists_in(std::string bucket_name);
+        briq_index get_index_of(string bucket_name);
+        void set_index_of(string bucket_name, briq_index index);
     };
 
     class None : public Briq {
@@ -196,7 +181,7 @@ namespace briqs {
             { std::cout << "set_lptr" << std::endl;
               lsgr = new Pntr(briq); /* lsgr = std::make_shared<Pntr>(briq); */ }
         void set_gptr(Briq *briq) override
-            { gsgr = new Pntr(briq); /* std::make_shared<Pntr>(briq);*/ }
+            { gsgr = new Pntr(briq); /* std::make_shared<Pntr>(briq); */ }
         Briq* l() override {
             Briq* briq = lsgr->get();
 

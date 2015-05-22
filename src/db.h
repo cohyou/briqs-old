@@ -54,8 +54,9 @@ namespace briqs {
     };
 
     template<class T>
-    Briq* Bucket::save(T* briq)
-    {
+    Briq* Bucket::save(T* briq) {
+        briq->set_target_bucket(this->name());
+        
         // typedef bucket_traits<T> traits;
         // traits tr = traits();
         byte* data = briq->cast_to_data();
