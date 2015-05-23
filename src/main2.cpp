@@ -31,6 +31,9 @@ int main() {
 
     std::string bucket_name = "bool_save_test";
     plate->save_briq(tval, bucket_name);
+    plate->save_briq(fval, bucket_name);
+
+    std::cout << tval->get_index() << std::endl;
 
     /*
     auto t = plate->make<Text>("wowow");

@@ -19,36 +19,21 @@ namespace briqs {
         { target_bucket_name = bucket_name; }
 
     bool Briq::exists_in(std::string bucket_name) {
-        bool result = false;
-        auto it = std::find_if(signifiers.begin(), signifiers.end(),
-        [=](Sgfr* sgfr){ return (*sgfr).bucket_name() == bucket_name; });
-        return it != signifiers.end();
+        return (denoter_infos.count(bucket_name) > 0);
     }
 
     bool Briq::has_valid_index()
         { return (exists_in(target_bucket_name)); }
 
-    briq_index Briq::get_index_of(string bucket_name) {
-        auto it = std::find_if(signifiers.begin(), signifiers.end(),
-        [=](Sgfr* sgfr){ return (*sgfr).bucket_name() == bucket_name; });
-        if (it != signifiers.end()) {
-            return (*it)->get_index();
-        } else {
-            return ULONG_MAX;
-        }
+    briq_index Briq::get_index_of(std::string bucket_name) {
+        return denoter_infos[bucket_name];
     }
 
-    briq_index Briq::get_index() const
+    briq_index Briq::get_index()
         { return get_index_of(target_bucket_name); }
 
-    void Briq::set_index_of(string bucket_name, briq_index idx) {
-        auto it = std::find_if(signifiers.begin(), signifiers.end(),
-        [=](Sgfr* sgfr){ return (*sgfr).bucket_name() == bucket_name; });
-        if (it != signifiers.end()) {
-            return (*it)->set_index(idx);
-        } else {
-            return signifiers.insert();
-        }
+    void Briq::set_index_of(std::string bucket_name, briq_index idx) {
+        denoter_infos[bucket_name] = idx;
     }
 
     void Briq::set_index(briq_index idx)

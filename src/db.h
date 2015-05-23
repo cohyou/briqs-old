@@ -12,9 +12,9 @@ namespace briqs {
 
     template <>
     struct bucket_traits<Bool> {
-        byte* cast_to_data(Bool* b) {
+        std::unique_ptr<byte> cast_to_data(Bool* b) {
             byte t = b->bval() ? 0xC1 : 0xC0;
-            byte* data = new byte[32]{SVAL, t,};
+            std::unique_ptr<byte> data { new byte[32]{SVAL, t,}};
             return data;
         }
     };
@@ -56,9 +56,7 @@ namespace briqs {
     template<class T>
     Briq* Bucket::save(T* briq) {
         briq->set_target_bucket(this->name());
-        
-        // typedef bucket_traits<T> traits;
-        // traits tr = traits();
+
         byte* data = briq->cast_to_data();
 
         if (briq->has_valid_index()) {
@@ -69,13 +67,13 @@ namespace briqs {
         } else {
             // 新規
             briq->set_index(incr_max_id());
-            std::ofstream fout(bucket_name + ".bc", std::ios::binary | std::ios::app);
+            std::ofstream fout(get_file_path().c_str(), std::ios::binary | std::ios::app);
             fout.write(as_bytes(data[0]), 32);
         }
 
-        delete[] data;
+        // delete[] data;
 
-        // 保存後、確定したindexをbriqに割り当てる必要がある
+        // 保存後、確定したLとGのindexをbriqに割り当てる必要がある
         // 以下は元々の処理、変更の必要あり
         /*
         if (b->kind() == CELL) {

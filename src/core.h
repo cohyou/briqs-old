@@ -55,7 +55,7 @@ namespace briqs {
     class Briq {
     protected:
         std::string target_bucket_name;
-        std::set<Sgfr*> signifiers;
+        std::map<std::string, briq_index> denoter_infos;
     public:
         virtual bool is_atom() const = 0;
         virtual Kind kind() const
@@ -74,8 +74,10 @@ namespace briqs {
 
         virtual void set_lptr(Briq *briq) {};
         virtual void set_gptr(Briq *briq) {};
+        /*
         void set_sgfr(Sgfr* sgfr)
             { signifiers.insert(sgfr); }
+        */
         void set_target_bucket(std::string bucket_name);
         virtual Briq *l()
             { return nullptr; }
@@ -83,14 +85,14 @@ namespace briqs {
             { return nullptr; }
         virtual ~Briq();
         virtual byte* cast_to_data() { return nullptr; };
-        virtual briq_index get_index() const;
+        virtual briq_index get_index();
         virtual void set_index(briq_index idx);
         virtual std::string vstr() const { return ""; };
         bool has_valid_index();
     private:
         bool exists_in(std::string bucket_name);
-        briq_index get_index_of(string bucket_name);
-        void set_index_of(string bucket_name, briq_index index);
+        briq_index get_index_of(std::string bucket_name);
+        void set_index_of(std::string bucket_name, briq_index index);
     };
 
     class None : public Briq {
@@ -187,7 +189,8 @@ namespace briqs {
 
             if (lsgr->type() == "DNTR") {
                 set_lptr(briq);
-                briq->set_sgfr(lsgr);
+                briq->set_target_bucket(lsgr->bucket_name());
+                briq->set_index(lsgr->get_index());
             }
 
             return briq;
@@ -196,7 +199,8 @@ namespace briqs {
             Briq* briq = gsgr->get();
             if (gsgr->type() == "DNTR") {
                 set_gptr(briq);
-                briq->set_sgfr(gsgr);
+                briq->set_target_bucket(gsgr->bucket_name());
+                briq->set_index(gsgr->get_index());
             }
             return briq;
         }
