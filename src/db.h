@@ -6,19 +6,6 @@ namespace briqs {
         return static_cast<char *>(addr);
     }
 
-    template <class T>
-    struct bucket_traits {
-    };
-
-    template <>
-    struct bucket_traits<Bool> {
-        std::unique_ptr<byte> cast_to_data(Bool* b) {
-            byte t = b->bval() ? 0xC1 : 0xC0;
-            std::unique_ptr<byte> data { new byte[32]{SVAL, t,}};
-            return data;
-        }
-    };
-
     class Bucket {
         std::string bucket_name;
     public:
@@ -28,10 +15,6 @@ namespace briqs {
         Briq* save(T* briq);
         Briq* save_recursive(Briq* briq);
 
-        /*
-        template<class T>
-        T* load(briq_index index);
-        */
         Briq* load(briq_index index);
 
         void clear();
@@ -88,21 +71,6 @@ namespace briqs {
         */
         return briq;
     }
-
-    /*
-    template<class T>
-    T* Bucket::load(briq_index index)
-    {
-        std::ifstream fin(name + ".bc", std::ios::binary);
-        fin.seekg(index * 32, std::ios_base::beg);
-        byte data[32] = {};
-        fin.read(as_bytes(data[0]), 32);
-
-        typedef bucket_traits<T> traits;
-        traits tr = traits();
-        return tr.cast_from_data(data);
-    }
-    */
 
     class Dntr : public Sgfr {
         Bucket* bucket;

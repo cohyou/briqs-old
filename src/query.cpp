@@ -608,14 +608,14 @@ namespace briqs {
         Briq *briq_id = args->l();
         Briq *bucket_text = args->g()->l();
 
-        return stiq->plate->load(briq_id->ul(), bucket_text->name());
+        return stiq->plate->load_briq(briq_id->ul(), bucket_text->name());
     }
 
     Briq* import(Stiq* stiq, Briq *args) {
         Briq *result = none;
         Briq *bucket_text = args->l();
 
-        Briq *ent = stiq->plate->load(0, bucket_text->name());
+        Briq *ent = stiq->plate->load_briq(0, bucket_text->name());
         Briq *statement = ent->l();
         result = statement;
         while (statement) {

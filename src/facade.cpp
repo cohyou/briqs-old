@@ -7,7 +7,7 @@ namespace briqs {
     }
 
     // template <class T>
-    Briq* Baseplate::load(briq_index index, std::string bucket_name) {
+    Briq* Baseplate::load_briq(briq_index index, std::string bucket_name) {
         auto bucket = get_bucket(bucket_name);
         auto briq = bucket->load(index);
         pile.add_briq(briq);

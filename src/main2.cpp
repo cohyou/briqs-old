@@ -35,18 +35,22 @@ int main() {
 
     std::cout << tval->get_index() << std::endl;
 
-    /*
-    auto t = plate->make<Text>("wowow");
+    bucket_name = "ui64_save_test";
+    plate->clear_bucket(bucket_name);
+    auto i = plate->make<Ui64>(12345678);
+    plate->save_briq(i, bucket_name);
+    std::cout << i->get_index() << std::endl;
 
-    plate->save(fval, bucket_name);
+    Briq* i2 = plate->load_briq(i->get_index(), bucket_name);
+    std::cout << i2->ul() << std::endl;
 
-    auto load_0 = plate->load<Bool>(0, bucket_name);
-    std::cout << load_0->to_s() << std::endl;
-    std::cout << load_0->bval() << std::endl;
-    auto load_1 = plate->load<Bool>(1, bucket_name);
-    std::cout << load_1->to_s() << std::endl;
-    std::cout << load_1->bval() << std::endl;
-    */
+    bucket_name = "cell_save_test";
+    plate->clear_bucket(bucket_name);
+    auto ui64 = plate->make<Ui64>(87654321);
+    plate->save_briq(ui64, bucket_name);
+    auto cell = plate->make<Cell>();
+    cell->set_lptr(ui64);
+    plate->save_briq(cell, bucket_name);
 
     std::string path = "stiq/__.iq";
     rep(path.c_str());

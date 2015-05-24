@@ -4,11 +4,23 @@ namespace briqs {
     Bool* cast_from_bool(byte *bytes) {
         return new Bool((bytes[1] == 0xC1));
     }
+    Ui64* cast_from_ui64(byte *bytes) {
+        std::cout << "cast_from_ui64" << std::endl;
+        union {
+            unsigned long ul;
+            byte bs[8];
+        } interpret_;
+        for (size_t i = 0; i < 8; i++) {
+            interpret_.bs[i] = bytes[i + 16];
+        }
+        return new Ui64(interpret_.ul);
+    }
 
     std::map<int, std::function<Briq*(byte*)>> unpacking_traits =
     {
         {0xC0, cast_from_bool},
         {0xC1, cast_from_bool},
+        {0xCF, cast_from_ui64},
     };
 
     Bucket::Bucket(std::string name) {
@@ -47,15 +59,12 @@ namespace briqs {
     }
 
     Briq* Bucket::load(briq_index index) {
-        std::ifstream fin(bucket_name + ".bc", std::ios::binary);
+
+        std::ifstream fin(get_file_path().c_str(), std::ios::binary);
         fin.seekg(index * 32, std::ios_base::beg);
         byte data[32] = {};
         fin.read(as_bytes(data[0]), 32);
-        /*
-        typedef bucket_traits<T> traits;
-        traits tr = traits();
-        return tr.cast_from_data(data);
-        */
+        std::cout << "Bucket::load" << (int)data[1] << std::endl;
         return unpacking_traits[data[1]](data);
     }
 

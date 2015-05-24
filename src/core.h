@@ -133,10 +133,11 @@ namespace briqs {
             { return true; }
         std::string info() const override
             { return "Ui64"; }
-        unsigned long ul() const override
-            { return ul_; }
         public:
             Ui64(unsigned long ul) : ul_(ul) {};
+        unsigned long ul() const override
+            { return ul_; }
+        byte* cast_to_data() override;
     };
 
     class Text : public Briq {
@@ -206,6 +207,7 @@ namespace briqs {
         }
 
         std::string tree() const override;
+        byte* cast_to_data() override;
         ~Cell() {
             delete lsgr;
             delete gsgr;

@@ -12,7 +12,7 @@ namespace briqs {
         Briq* save_briq_recursive(Briq* briq, std::string bucket_name);
 
         // template <class T>
-        Briq* load(briq_index index, std::string bucket_name);
+        Briq* load_briq(briq_index index, std::string bucket_name);
 
         void clear_bucket(std::string bucket_name);
 

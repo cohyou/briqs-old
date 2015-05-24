@@ -48,6 +48,35 @@ namespace briqs {
         return data;
     }
 
+    byte* Ui64::cast_to_data() {
+        union {
+            unsigned long ul;
+            byte bs[8];
+        } interpret_;
+        byte* data = new byte[32]{SVAL, 0xCF,};
+        interpret_.ul = ul_;
+        for (size_t i = 0; i < 8; i++) {
+            data[i + 16] = interpret_.bs[i];
+        }
+        return data;
+    }
+
+    byte* Cell::cast_to_data() {
+        byte* data = new byte[32]{CELL, 1,};
+        /*
+        union {
+            unsigned long ul;
+            byte bs[8];
+        } interpret_;
+
+        interpret_.ul = ul_;
+        for (size_t i = 0; i < 8; i++) {
+            data[i + 16] = interpret_.bs[i];
+        }
+        */
+        return data;
+    }
+
     // Sgfr::~Sgfr() {}
 
     std::string Cell::tree() const {
