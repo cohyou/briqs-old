@@ -61,19 +61,59 @@ namespace briqs {
         return data;
     }
 
-    byte* Cell::cast_to_data() {
-        byte* data = new byte[32]{CELL, 1,};
-        /*
+    byte* Text::cast_to_data() {
         union {
             unsigned long ul;
             byte bs[8];
         } interpret_;
 
-        interpret_.ul = ul_;
-        for (size_t i = 0; i < 8; i++) {
-            data[i + 16] = interpret_.bs[i];
+        int requiredByteLength = ((bval.size() - 1) / 16 + 1) * 32;
+        byte* data = new byte[requiredByteLength]{0x03, 0xD9,};
+        interpret_.ul = bval.size();
+        for (size_t j = 0; j < 8; j++) {
+            data[8 + j] = interpret_.bs[j];
         }
-        */
+
+        for (int i = 0; i < bval.size(); ++i) {
+            if (i <= 15) {
+                data[i + 16] = bval[i];
+
+            } else {
+                if (i % 16 == 0) {
+                    data[32 * (i / 16)] = 0x03;
+                    data[32 * (i / 16) + 1] = 0xDA;
+                }
+                data[32 * (i / 16) + i % 16 + 16] = bval[i];
+            }
+        }
+        return data;
+    }
+
+    byte* Cell::cast_to_data() {
+        byte* data = new byte[32]{CELL, 0x01,};
+        union {
+            unsigned long ul;
+            byte bs[8];
+        } interpret_;
+
+        if (lsgr->type() == SgfrType::DNTR) {
+            interpret_.ul = lsgr->get_index();
+            for (size_t i = 0; i < 8; i++) {
+                data[i + 16] = interpret_.bs[i];
+            }
+        } else {
+            // ポインタのものをむりやり保存しようとしたら、どうなるのか
+        }
+
+        if (gsgr->type() == SgfrType::DNTR) {
+            interpret_.ul = gsgr->get_index();
+            for (size_t i = 0; i < 8; i++) {
+                data[i + 24] = interpret_.bs[i];
+            }
+        } else {
+            // ポインタのものをむりやり保存しようとしたら、どうなるのか
+        }
+
         return data;
     }
 

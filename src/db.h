@@ -46,31 +46,32 @@ namespace briqs {
             // 既存
             std::fstream fio(get_file_path().c_str(), std::ios::in | std::ios::out | std::ios::binary);
             fio.seekp(briq->get_index() * 32, std::ios_base::beg);
-            fio.write(as_bytes(data[0]), 32);
+            if (briq->type() == TEXT) {
+                fio.write(as_bytes(data[0]), ((briq->vstr().size() - 1) / 16 + 1) * 32);
+            } else {
+                fio.write(as_bytes(data[0]), 32);
+            }
         } else {
             // 新規
             briq->set_index(incr_max_id());
             std::ofstream fout(get_file_path().c_str(), std::ios::binary | std::ios::app);
-            fout.write(as_bytes(data[0]), 32);
-        }
-
-        // delete[] data;
-
-        // 保存後、確定したLとGのindexをbriqに割り当てる必要がある
-        // 以下は元々の処理、変更の必要あり
-        /*
-        if (b->kind() == CELL) {
-            if (b->ltyp() == PNTR && b->lptr()) {
-                b->set_lidx(b->lptr()->get_index());
-            }
-
-            if (b->gtyp() == PNTR && b->gptr()) {
-                b->set_gidx(b->gptr()->get_index());
+            if (briq->type() == TEXT) {
+                int data_count = ((briq->vstr().size() - 1) / 16 + 1);
+                for (int i = 0; i < data_count - 1; ++i) {
+                    incr_max_id();
+                }
+                fout.write(as_bytes(data[0]), data_count * 32);
+            } else {
+                fout.write(as_bytes(data[0]), 32);
             }
         }
-        */
+
+        delete[] data;
+
         return briq;
     }
+
+    
 
     class Dntr : public Sgfr {
         Bucket* bucket;
@@ -79,8 +80,8 @@ namespace briqs {
         Dntr(Bucket* bc, briq_index idx) : bucket(bc), index(idx) {};
         Briq* get() override
             { return bucket->load(index); }
-        std::string type() override
-            { return "DNTR"; }
+        SgfrType type() override
+            { return SgfrType::DNTR; }
         std::string bucket_name() override
             { return bucket->name(); };
         bool operator==(Dntr another_dntr) {

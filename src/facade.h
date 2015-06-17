@@ -16,12 +16,14 @@ namespace briqs {
 
         void clear_bucket(std::string bucket_name);
 
+        Bucket* get_bucket(std::string bucket_name);
+        
         ~Baseplate();
 
     private:
         Pile pile;
         std::map<std::string, Bucket*> buckets;
-        Bucket* get_bucket(std::string bucket_name);
+
     };
 
     template <class T, class... Types>

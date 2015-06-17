@@ -30,6 +30,8 @@ namespace briqs {
 
     // TODO: wanna change name of ____
     enum Type { ____, NONE, TEXT, SMBL, SPFM, PRIM, FUNC, };
+    enum class SgfrType { ____, DNTR, PNTR, };
+
     typedef unsigned char byte;
 
     class Briq;
@@ -39,7 +41,7 @@ namespace briqs {
     class Sgfr {
     public:
         virtual Briq* get() { return nullptr; };
-        virtual std::string type() { return ""; };
+        virtual SgfrType type() { return SgfrType::____; };
         bool operator==(Sgfr another_sgfr) {
             return false;
         }
@@ -67,27 +69,28 @@ namespace briqs {
         virtual Briq* operator()(Stiq* stiq, Briq* b)
             { return nullptr; }
         virtual std::string info() const = 0;
-        virtual std::string to_s() const { return info(); };
-        virtual std::string tree() const { return to_s(); };
-        virtual std::string name() const { return to_s(); };
-        virtual unsigned long ul() const { return ULONG_MAX; };
+        virtual std::string to_s() const { return info(); }
+        virtual std::string tree() const { return to_s(); }
+        virtual std::string name() const { return to_s(); }
+        virtual unsigned long ul() const { return ULONG_MAX; }
 
-        virtual void set_lptr(Briq *briq) {};
-        virtual void set_gptr(Briq *briq) {};
-        /*
-        void set_sgfr(Sgfr* sgfr)
-            { signifiers.insert(sgfr); }
-        */
+        virtual void set_lptr(Briq *briq) {}
+        virtual void set_gptr(Briq *briq) {}
+        virtual void set_lsgr(Sgfr* sgfr) {}
+        virtual void set_gsgr(Sgfr* sgfr) {}
+
         void set_target_bucket(std::string bucket_name);
         virtual Briq *l()
             { return nullptr; }
         virtual Briq *g()
             { return nullptr; }
         virtual ~Briq();
-        virtual byte* cast_to_data() { return nullptr; };
+        virtual byte* cast_to_data() { return nullptr; }
         virtual briq_index get_index();
         virtual void set_index(briq_index idx);
-        virtual std::string vstr() const { return ""; };
+        virtual std::string vstr() const { return ""; }
+        virtual SgfrType ltyp() const { return SgfrType::____; }
+        virtual SgfrType gtyp() const { return SgfrType::____; }
         bool has_valid_index();
     private:
         bool exists_in(std::string bucket_name);
@@ -153,18 +156,19 @@ namespace briqs {
         std::string to_s() const override
             { return "\"" + bval + "\""; }
         std::string name() const override
-            { return bval; };
+            { return bval; }
         std::string vstr() const override
-            { return bval; };
+            { return bval; }
+        byte* cast_to_data() override;
     };
 
     class Pntr : public Sgfr {
     public:
         Pntr(Briq *briq) : pval(briq) {};
         Briq* get() override
-            { std::cout << "pntr" << std::endl; return pval; }
-        std::string type() override
-            { return "PNTR"; }
+            { /*std::cout << "pntr" << std::endl;*/ return pval; }
+        SgfrType type() override
+            { return SgfrType::PNTR; }
     private:
         Briq* pval;
     };
@@ -175,36 +179,57 @@ namespace briqs {
         std::string info() const
             { return "CELL"; }
     public:
-        Cell() : lsgr(nullptr), gsgr(nullptr) {};
+        Cell() : lsgr(new Pntr(none)), gsgr(new Pntr(none)) {};
         bool is_atom() const override
             { return false; }
         bool is_self_evaluating() const override
             { return false; }
-        void set_lptr(Briq *briq) override
-            { std::cout << "set_lptr" << std::endl;
-              lsgr = new Pntr(briq); /* lsgr = std::make_shared<Pntr>(briq); */ }
-        void set_gptr(Briq *briq) override
-            { gsgr = new Pntr(briq); /* std::make_shared<Pntr>(briq); */ }
+        Kind kind() const override
+            { return CELL; }
+
+        void set_lptr(Briq *briq) override {
+            if (lsgr->type() == SgfrType::DNTR || lsgr->get() != briq) {
+                delete lsgr;
+                lsgr = new Pntr(briq);
+            }
+        }
+        void set_gptr(Briq *briq) override {
+            if (gsgr->type() == SgfrType::DNTR || gsgr->get() != briq) {
+                delete gsgr;
+                gsgr = new Pntr(briq);
+            }
+        }
+
+        void set_lsgr(Sgfr* sgfr) override {
+            if (lsgr != sgfr) {
+                delete lsgr;
+                lsgr = sgfr;
+            }
+        }
+
+        void set_gsgr(Sgfr* sgfr) override {
+            if (gsgr != sgfr) {
+                delete gsgr;
+                gsgr = sgfr;
+            }
+        }
+
         Briq* l() override {
             Briq* briq = lsgr->get();
-
-            if (lsgr->type() == "DNTR") {
+            if (lsgr->type() == SgfrType::DNTR) {
                 set_lptr(briq);
-                briq->set_target_bucket(lsgr->bucket_name());
-                briq->set_index(lsgr->get_index());
             }
-
             return briq;
         }
         Briq* g() override {
             Briq* briq = gsgr->get();
-            if (gsgr->type() == "DNTR") {
+            if (gsgr->type() == SgfrType::DNTR) {
                 set_gptr(briq);
-                briq->set_target_bucket(gsgr->bucket_name());
-                briq->set_index(gsgr->get_index());
             }
             return briq;
         }
+        SgfrType ltyp() const override { return lsgr->type(); }
+        SgfrType gtyp() const override { return gsgr->type(); }
 
         std::string tree() const override;
         byte* cast_to_data() override;
